@@ -1,26 +1,24 @@
 {
   "name": "astar",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Astar algorithm written in typescript",
+  "main": "main.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "start": "webpack-dev-server --inline --progress --port 8080",
+    "start": "webpack-dev-server --inline --hot",
     "test": "karma start",
-    "build": "rimraf dist && webpack --config config/webpack.config.js --progress --profile --bail"
+    "build": "rimraf dist && webpack --config webpack.config.js -d"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@bitbucket.org/lmcphetridge/astar.git"
   },
-  "keywords": [],
-  "author": "",
+  "author": "Levi McPhetridge",
   "license": "ISC",
   "homepage": "https://bitbucket.org/lmcphetridge/astar#readme",
   "devDependencies": {
-    "awesome-typescript-loader": "^3.0.0-beta.9",
     "baggage-loader": "^0.2.4",
     "clean-webpack-plugin": "^0.1.14",
     "css-loader": "^0.26.1",
@@ -29,15 +27,23 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.9.0",
     "html-loader": "^0.4.4",
-    "karma": "^1.3.0",
+    "jasmine": "^2.5.3",
+    "karma": "^1.4.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-phantomjs-launcher": "^1.0.2",
+    "karma-typescript": "^2.1.6",
+    "moment": "^2.17.1",
     "node-sass": "^3.13.0",
+    "remap-istanbul": "^0.8.4",
     "rimraf": "^2.5.4",
     "sass-loader": "^4.0.2",
-    "source-map-loader": "^0.1.5",
     "style-loader": "^0.13.1",
-    "typescript": "^2.0.10",
+    "ts-loader": "^1.3.3",
+    "ts-node": "^2.0.0",
+    "typescript": "^2.1.5",
+    "typings": "^2.1.0",
     "url-loader": "^0.5.7",
-    "webpack": "^1.13.3",
+    "webpack": "^1.14.0",
     "webpack-dev-server": "^1.16.2"
   }
 }
