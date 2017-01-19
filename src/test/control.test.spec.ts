@@ -1,9 +1,7 @@
 /// <reference path="../../typings/globals/jasmine/index.d.ts" />
 
-describe("A suite", function() {
-  it("contains spec with an expectation", function() {
-    let test : String = "hi";
-    console.log(test);
+describe("A control test", function() {
+  it("expects true to be true", function() {
     expect(true).toBe(true);
   });
 });
