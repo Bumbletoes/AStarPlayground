@@ -1,3 +1,3 @@
-import { AStar } from './AStar';
+import { Game } from './Game';
 
-let myAstar = new AStar();
+let myGame = new Game();
