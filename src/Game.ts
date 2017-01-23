@@ -25,9 +25,23 @@ export class Game {
   private _startTile: AStarGameTile;
   private _endTile: AStarGameTile;
 
+  private _mouseDown: boolean;
+  private _mouseDownMode: number;
+
   constructor() {
-    this._gameBoard = new Gameboard(576, 1024, (tile: Tile) => {
-      this._toggleTileMode(<AStarGameTile>tile);
+    this._mouseDown = false;
+
+    this._gameBoard = new Gameboard(576, 1024, {
+      onmousedown: (tile: Tile) => {
+        this._mouseDown = true;
+        this._toggleTileMode(<AStarGameTile>tile);
+      },
+      onmousemove: (tile: Tile) => {
+        this._drawTilesOnDrag(<AStarGameTile>tile);
+      },
+      onmouseup: (tile: Tile) => {
+        this._onMouseUp();
+      }
     });
     this._initializeAstarTiles();
     this._initButtons();
@@ -53,7 +67,7 @@ export class Game {
       e.stopPropagation();
       this.clearGameBoard();
     });
-  }
+  };
 
   private _initializeAstarTiles() {
     this._gameBoard.apply((tile: AStarGameTile) => {
@@ -79,6 +93,9 @@ export class Game {
       tile.tileMode++;
     }
 
+    this._mouseDown = true;
+    this._mouseDownMode = tile.tileMode;
+
     switch (tile.tileMode) {
       case TILE_MODES.EMPTY:
         tile.color = ASTAR_TILE_COLORS.INITIAL_COLOR;
@@ -98,7 +115,23 @@ export class Game {
     }
 
     this._gameBoard.drawTile(tile);
-  }
+  };
+
+  private _drawTilesOnDrag(tile: AStarGameTile) {
+    if (this._mouseDown &&
+      this._mouseDownMode !== TILE_MODES.START &&
+      this._mouseDownMode !== TILE_MODES.END &&
+      (this._startTile !== tile &&
+        this._endTile !== tile)) {
+      tile.tileMode = this._mouseDownMode;
+      tile.color = tile.tileMode === TILE_MODES.BLOCK ? ASTAR_TILE_COLORS.BLOCKING_COLOR : ASTAR_TILE_COLORS.INITIAL_COLOR;
+      this._gameBoard.drawTile(tile);
+    }
+  };
+
+  private _onMouseUp() {
+    this._mouseDown = false;
+  };
 
   private _setStartTile(tile: AStarGameTile) {
     if (this._startTile !== undefined) { // There can be only one start tile
@@ -108,7 +141,7 @@ export class Game {
     }
     tile.color = ASTAR_TILE_COLORS.START_COLOR;
     this._startTile = tile;
-  }
+  };
 
   private _setEndTile(tile: AStarGameTile) {
     if (this._endTile !== undefined) {
@@ -118,5 +151,5 @@ export class Game {
     }
     tile.color = ASTAR_TILE_COLORS.END_COLOR;
     this._endTile = tile;
-  }
+  };
 }

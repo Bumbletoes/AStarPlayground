@@ -2,6 +2,13 @@ interface Point {
   x: number,
   y: number
 };
+
+export interface Listeners {
+  onmousedown?: Function,
+  onmousemove?: Function,
+  onmouseup?: Function
+}
+
 export interface Grid extends Array<Array<Tile>> { };
 
 export interface Tile {
@@ -30,19 +37,16 @@ export class Gameboard {
   private _canvas: HTMLCanvasElement;
   private _tiles: Grid;
   private _context: CanvasRenderingContext2D;
-  private _tileClickHandler: Function;
-
   /**
    * Represents the gamboard
    * @constructor
    */
-  constructor(height: number, width: number, tileClickHandler: Function) {
+  constructor(height: number, width: number, listeners?: Listeners) {
     let numColumns: number = width / this._TILE_SIZE;
     let numRows: number = height / this._TILE_SIZE;
 
-    this._initCanvas(height, width);
+    this._initCanvas(height, width, listeners);
     this._tiles = this._initTiles(numColumns, numRows);
-    this._tileClickHandler = tileClickHandler;
   };
 
   /**
@@ -83,7 +87,7 @@ export class Gameboard {
    * @param height {number} - height of the canvas
    * @param width {number} - width of the canvas
    */
-  private _initCanvas(height: number, width: number) {
+  private _initCanvas(height: number, width: number, listeners: Listeners) {
     this._canvas = document.createElement('canvas');
     this._canvas.id = this._CANVAS_ID;
     this._canvas.height = height;
@@ -96,20 +100,39 @@ export class Gameboard {
     document.body.appendChild(this._canvas);
 
     this._canvas.addEventListener('selectstart', (e) => { e.preventDefault(); return false; }, false);
-    this._canvas.addEventListener('mousedown', (e) => {
-      let globalCoords: Point = { x: e.pageX - this._canvas.offsetLeft, y: e.pageY - this._canvas.offsetTop };
-      let tile: Tile = this._getTile(this._globalCoordToTileCoord(globalCoords));
-      if (tile) {
-        this._handleTileClick(tile);
-      }
-    }, true);
-  };
 
-  private _handleTileClick(tile: Tile) {
-    if (this._tileClickHandler) {
-      this._tileClickHandler(tile);
+    if (listeners.onmousedown) {
+      this._canvas.addEventListener('mousedown', (e) => {
+        let tile = this._getTileFromMouseEvent(e);
+        if (tile && listeners.onmousedown) {
+          listeners.onmousedown(tile);
+        }
+      }, true);
+    }
+
+    if (listeners.onmousemove) {
+      this._canvas.addEventListener('mousemove', (e) => {
+        let tile = this._getTileFromMouseEvent(e);
+        if (tile) {
+          listeners.onmousemove(tile);
+        }
+      });
+    }
+
+    if (listeners.onmouseup) {
+      this._canvas.addEventListener('mouseup', (e) => {
+        let tile = this._getTileFromMouseEvent(e);
+        if (tile) {
+          listeners.onmouseup(tile);
+        }
+      });
     }
   };
+
+  private _getTileFromMouseEvent(e : MouseEvent): Tile {
+    let globalCoords: Point = { x: e.pageX - this._canvas.offsetLeft, y: e.pageY - this._canvas.offsetTop };
+    return this._getTile(this._globalCoordToTileCoord(globalCoords));
+  }
 
   /**
    * Converts global coords of the board to the local tile location in the grid array

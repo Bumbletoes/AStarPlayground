@@ -9,7 +9,8 @@
   "scripts": {
     "start": "webpack-dev-server --inline --hot --open",
     "test": "karma start",
-    "build": "rimraf dist && webpack --config webpack.config.js -d"
+    "build": "rimraf dist && webpack --config webpack.config.js -d",
+    "watch": "webpack --progress --colors --watch"
   },
   "repository": {
     "type": "git",
