@@ -31,7 +31,7 @@ export class Game {
   constructor() {
     this._mouseDown = false;
 
-    this._gameBoard = new Gameboard(576, 1024, {
+    this._gameBoard = new Gameboard({
       onmousedown: (tile: Tile) => {
         this._mouseDown = true;
         this._toggleTileMode(<AStarGameTile>tile);

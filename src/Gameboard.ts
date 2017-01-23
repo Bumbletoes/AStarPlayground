@@ -24,15 +24,15 @@ export class TILE_COLORS {
 
 export class Gameboard {
   // Canvas properties
-  private _STROKE_COLOR: string = '#000';
-  private _CANVAS_ID: string = 'gameboard';
-  private _LINE_WIDTH: number = 1;
-  private _BORDER_STYLE: string = '1px solid #000';
-  private _FILL_COLOR_OFFSET: number = 1; // Offset so the fill color accounts for the line width
-  private _FILL_COLOR_SIZE: number = this._LINE_WIDTH + 1; // Magic number for fill color size accounting for line size
-
-  private _TILE_SIZE: number = 32;
-
+  private readonly _STROKE_COLOR: string = '#000';
+  private readonly _CANVAS_ID: string = 'gameboard';
+  private readonly _LINE_WIDTH: number = 1;
+  private readonly _BORDER_STYLE: string = '1px solid #000';
+  private readonly _FILL_COLOR_OFFSET: number = 1; // Offset so the fill color accounts for the line width
+  private readonly _FILL_COLOR_SIZE: number = this._LINE_WIDTH + 1; // Magic number for fill color size accounting for line size
+  private readonly _TILE_SIZE: number = 32;
+  private readonly _BOARD_HEIGHT: number = 576;
+  private readonly _BOARD_WIDTH: number = 1024;
 
   private _canvas: HTMLCanvasElement;
   private _tiles: Grid;
@@ -41,11 +41,11 @@ export class Gameboard {
    * Represents the gamboard
    * @constructor
    */
-  constructor(height: number, width: number, listeners?: Listeners) {
-    let numColumns: number = width / this._TILE_SIZE;
-    let numRows: number = height / this._TILE_SIZE;
+  constructor(listeners?: Listeners) {
+    let numColumns: number = this._BOARD_WIDTH / this._TILE_SIZE;
+    let numRows: number = this._BOARD_HEIGHT / this._TILE_SIZE;
 
-    this._initCanvas(height, width, listeners);
+    this._initCanvas(this._BOARD_HEIGHT, this._BOARD_WIDTH, listeners);
     this._tiles = this._initTiles(numColumns, numRows);
   };
 
@@ -56,6 +56,31 @@ export class Gameboard {
     this.apply((tile: Tile) => {
       this.drawTile(tile);
     });
+  };
+
+  /**
+   * Helper function for drawing tiles. Takes a point to draw the tile at.
+   * Offset based on width and height of the tile are taken into account.
+   * @param position {Tile} - tile to draw
+   */
+  public drawTile(tile: Tile) {
+    let globalPosition: Point;
+
+    if (this._tileExists(tile.position)) {
+      globalPosition = { x: tile.position.x * this._TILE_SIZE, y: tile.position.y * this._TILE_SIZE };
+
+      this._context.clearRect(globalPosition.x, globalPosition.y, this._TILE_SIZE, this._TILE_SIZE);
+      this._context.strokeRect(globalPosition.x,
+        globalPosition.y,
+        this._TILE_SIZE,
+        this._TILE_SIZE);
+
+      this._context.fillStyle = tile.color;
+      this._context.fillRect(globalPosition.x + this._LINE_WIDTH,
+        globalPosition.y + this._LINE_WIDTH,
+        this._TILE_SIZE - this._FILL_COLOR_SIZE,
+        this._TILE_SIZE - this._FILL_COLOR_SIZE);
+    }
   };
 
   /**
@@ -70,7 +95,11 @@ export class Gameboard {
     });
   };
 
-  private _getTile(tilePosition: Point): Tile {
+  public getGrid() : Grid {
+    return this._tiles;
+  };
+
+  public getTile(tilePosition: Point): Tile {
     if (this._tileExists(tilePosition)) {
       return this._tiles[tilePosition.x][tilePosition.y];
     }
@@ -100,7 +129,12 @@ export class Gameboard {
     document.body.appendChild(this._canvas);
 
     this._canvas.addEventListener('selectstart', (e) => { e.preventDefault(); return false; }, false);
+    if (listeners) {
+      this._addListeners(listeners);
+    }
+  };
 
+  private _addListeners(listeners: Listeners) {
     if (listeners.onmousedown) {
       this._canvas.addEventListener('mousedown', (e) => {
         let tile = this._getTileFromMouseEvent(e);
@@ -129,9 +163,9 @@ export class Gameboard {
     }
   };
 
-  private _getTileFromMouseEvent(e : MouseEvent): Tile {
+  private _getTileFromMouseEvent(e: MouseEvent): Tile {
     let globalCoords: Point = { x: e.pageX - this._canvas.offsetLeft, y: e.pageY - this._canvas.offsetTop };
-    return this._getTile(this._globalCoordToTileCoord(globalCoords));
+    return this.getTile(this._globalCoordToTileCoord(globalCoords));
   }
 
   /**
@@ -199,30 +233,5 @@ export class Gameboard {
     });
 
     return neighbors;
-  };
-
-  /**
-   * Helper function for drawing tiles. Takes a point to draw the tile at.
-   * Offset based on width and height of the tile are taken into account.
-   * @param position {Tile} - tile to draw
-   */
-  public drawTile(tile: Tile) {
-    let globalPosition: Point;
-
-    if (this._tileExists(tile.position)) {
-      globalPosition = { x: tile.position.x * this._TILE_SIZE, y: tile.position.y * this._TILE_SIZE };
-
-      this._context.clearRect(globalPosition.x, globalPosition.y, this._TILE_SIZE, this._TILE_SIZE);
-      this._context.strokeRect(globalPosition.x,
-        globalPosition.y,
-        this._TILE_SIZE,
-        this._TILE_SIZE);
-
-      this._context.fillStyle = tile.color;
-      this._context.fillRect(globalPosition.x + this._LINE_WIDTH,
-        globalPosition.y + this._LINE_WIDTH,
-        this._TILE_SIZE - this._FILL_COLOR_SIZE,
-        this._TILE_SIZE - this._FILL_COLOR_SIZE);
-    }
   };
 }
