@@ -14,6 +14,7 @@ let plugins = [
     children: true,
     minChunks: 2,
   }),
+  new webpack.HotModuleReplacementPlugin()
 ];
 
 if (production) {
@@ -69,11 +70,14 @@ module.exports = {
     path: path.resolve(__dirname, './dist'),
     filename: '[name].js',
     chunkFilename: '[name]-[chunkhash].js',
-    publicPath: 'builds/',
+    publicPath: 'dist/',
     vendor: ['']
   },
   devServer: {
+    contentBase: './',
     hot: true,
+    inline: true,
+    open:true
   },
   plugins: plugins,
   resolve: {
@@ -110,6 +114,10 @@ module.exports = {
           limit: 10000,
         }
       },
+      { 
+      test: /worker\.js$/,
+      loader: 'worker'
+  }
     ]
   },
 };
