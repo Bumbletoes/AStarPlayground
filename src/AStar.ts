@@ -1,34 +1,11 @@
-/*
-// A*
-initialize the open list
-initialize the closed list
-put the starting node on the open list (you can leave its f at zero)
+import { AStarGameTile, TILE_MODES } from './Game';
+import { Gameboard, Tile, Point } from './Gameboard';
 
-while the open list is not empty
-    find the node with the least f on the open list, call it "q"
-    pop q off the open list
-    generate q's 8 successors and set their parents to q
-    for each successor
-    	if successor is the goal, stop the search
-        successor.g = q.g + distance between successor and q
-        successor.h = distance from goal to successor
-        successor.f = successor.g + successor.h
-
-        if a node with the same position as successor is in the OPEN list \
-            which has a lower f than successor, skip this successor
-        if a node with the same position as successor is in the CLOSED list \ 
-            which has a lower f than successor, skip this successor
-        otherwise, add the node to the open list
-    end
-    push q on the closed list
-end
-*/
-import { Gameboard, Tile } from './Gameboard';
-
-interface Node extends Tile {
+interface Node extends AStarGameTile {
   f: number, // g + h
   g: number, // cost it took to get here
-  h: number //guess at how much it'll cost to get to the goal
+  h: number, //guess at how much it'll cost to get to the goal
+  parent: Node
 };
 
 interface IDictionary {
@@ -37,42 +14,99 @@ interface IDictionary {
 
 export class AStar {
   private static _d: number = 1;
-  private  _gameBoard: Gameboard;
-  private static _openSet: Array<Node>;
-  private static _closedSet: Array<Node>;
+  private _gameBoard: Gameboard;
 
   constructor(gamebBoard: Gameboard) {
     this._gameBoard = gamebBoard;
   }
 
-  public calculatePath(start: Tile, finish: Tile) {
+  public calculatePath(start: Tile, finish: Tile): Array<AStarGameTile> {
     let cameFrom: IDictionary;
     let startNode: Node;
-    let q: Node; // item with the least f cost
+    let finishNode: Node;
+    let currentNode: Node; // item with the least f cost
+    let openSet: Array<Node> = new Array();
+    let closedSet: Array<Node> = new Array();
+    let path: Array<AStarGameTile> = new Array();
+    let currentPathNode: Node;
 
-    startNode.position.x = start.position.x;
-    startNode.position.y = start.position.y;
+    startNode = <Node>start;
     startNode.f = 0;
     startNode.g = 0;
     startNode.h = 0;
 
-    AStar._openSet.push(startNode);
+    finishNode = <Node>finish;
 
-    while (AStar._openSet.length != 0) {
-      AStar._openSet.sort((a: Node, b: Node) => {
+    openSet.push(startNode);
+
+    while (openSet.length != 0) {
+      openSet.sort((a: Node, b: Node) => {
         return a.f - b.f;
       });
-      
-      if (AStar._openSet.length > 0) {
-        q = AStar._openSet.shift();
+
+      if (openSet.length > 0) {
+        currentNode = openSet.shift();
+        console.log("currentNode:", currentNode);
       }
 
+      closedSet.push(currentNode);
+      currentNode.color = '#00EEEE';
+      this._gameBoard.drawTile(currentNode);
+      if (this._isOnList(finishNode, closedSet)) {
+        openSet = new Array();
+        currentPathNode = finishNode;
+        path.push(finishNode);
+        while (currentPathNode !== startNode) {
+          currentPathNode = currentPathNode.parent;
+          path.push(currentPathNode);
+        }
+        return path;
+      }
+
+      currentNode.neighbors.forEach((tileLocation: Point) => {
+        let neighbor: Node = <Node>this._gameBoard.getTile(tileLocation);
+        let newG: number;
+
+        if (neighbor === finishNode) {
+          finishNode.parent = currentNode;
+          closedSet.push(finishNode);
+          return;
+        } else if (neighbor.tileMode === TILE_MODES.BLOCK || this._isOnList(neighbor, closedSet)) {
+          return;
+        } else {
+          if (this._isOnList(neighbor, openSet) === false) {
+            neighbor.g = currentNode.g + this._calculateDistance(neighbor, currentNode);
+            neighbor.h = this._calculateDistance(neighbor, finishNode);
+            neighbor.f = neighbor.g + neighbor.h;
+            neighbor.parent = currentNode;
+            openSet.push(neighbor);
+          } else { // If it's already on the open list
+            newG = currentNode.g + this._calculateDistance(neighbor, currentNode);
+            if (newG < neighbor.g) { // See if this path is better
+              neighbor.g = newG;
+              neighbor.f = neighbor.g + neighbor.h;
+              neighbor.parent = currentNode;
+            }
+          }
+        }
+      });
     }
+
+    return path;
+  };
+
+  private _isOnList(node: Node, list: Array<Node>): Boolean {
+    list.forEach((currentNode: Node) => {
+      if (currentNode === node) {
+        return true;
+      }
+    });
+    return false;
   };
 
   private _calculateDistance(curNode: Node, goal: Node) {
     let dx: number = Math.abs(curNode.position.x - goal.position.x);
     let dy: number = Math.abs(curNode.position.y - goal.position.y);
     return AStar._d * (dx + dy);
-  }
+  };
 }

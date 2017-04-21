@@ -1,13 +1,14 @@
-import { Gameboard, Tile, Grid, TILE_COLORS } from './Gameboard'
+import { Gameboard, Tile, Grid, TILE_COLORS } from './Gameboard';
+import { AStar } from './AStar';
 
-enum TILE_MODES {
+export enum TILE_MODES {
   EMPTY,
   START,
   END,
   BLOCK
 }
 
-interface AStarGameTile extends Tile {
+export interface AStarGameTile extends Tile {
   tileMode: number
 }
 
@@ -18,12 +19,17 @@ class ASTAR_TILE_COLORS extends TILE_COLORS {
 };
 
 export class Game {
-  private CLEAR_BUTTON_ID = 'clearButton';
-  private CLEAR_BUTTON_TEXT = 'Clear Board';
+  private CLEAR_BUTTON_ID: string = 'clearButton';
+  private CLEAR_BUTTON_TEXT: string = 'Clear Board';
+
+  private START_BUTTON_ID: string = 'startButton';
+  private START_BUTTON_TEXT: string = 'Start';
 
   private _gameBoard: Gameboard;
   private _startTile: AStarGameTile;
   private _endTile: AStarGameTile;
+
+  private _astar: AStar;
 
   private _mouseDown: boolean;
   private _mouseDownMode: number;
@@ -46,6 +52,7 @@ export class Game {
     this._initializeAstarTiles();
     this._initButtons();
     this._gameBoard.drawBoard();
+    this._astar = new AStar(this._gameBoard);
   };
 
   public clearGameBoard() {
@@ -57,15 +64,34 @@ export class Game {
 
   private _initButtons() {
     let clearButton: HTMLElement;
+    let startButton: HTMLElement;
+
     clearButton = document.createElement('button');
     clearButton.innerHTML = this.CLEAR_BUTTON_TEXT;
     clearButton.id = this.CLEAR_BUTTON_ID;
     clearButton.style.display = 'block';
     document.body.appendChild(clearButton);
+
     clearButton.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       this.clearGameBoard();
+    });
+
+    startButton = document.createElement('button');
+    startButton.innerHTML = this.START_BUTTON_TEXT;
+    startButton.id = this.START_BUTTON_ID;
+    startButton.style.display = 'block';
+    document.body.appendChild(startButton);
+
+    startButton.addEventListener('click', (e) => {
+      let path: Array<AStarGameTile>;
+      e.preventDefault();
+      e.stopPropagation();
+      if (this._startTile && this._endTile) {
+        path = this._astar.calculatePath(this._startTile, this._endTile);
+        console.log(path);
+      }
     });
   };
 
